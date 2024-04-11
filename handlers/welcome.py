@@ -32,6 +32,7 @@ def make_router(bot: Bot) -> Router:
                 reply_markup=ReplyKeyboardRemove(),
             )
             create_new_user_folder(new_user.chat_id)
+            create_date_folder(new_user.chat_id)
         else:
             await message.answer(
                 "Welcome back!\n\n Please use the menu to fill out forms."
