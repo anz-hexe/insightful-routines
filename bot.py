@@ -24,9 +24,11 @@ from handlers import (
     workouts,
 )
 from models.models import init_db
+from settings import create_data_folder
 
 
 async def main():
+    create_data_folder("data")
     init_db()
 
     config = Config()
