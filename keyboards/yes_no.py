@@ -6,6 +6,5 @@ def get_yes_no_kb() -> ReplyKeyboardMarkup:
     kb = ReplyKeyboardBuilder()
     kb.button(text="yes")
     kb.button(text="no")
-    kb.button(text="not sure")
     kb.adjust(2)
     return kb.as_markup(resize_keyboard=True)
