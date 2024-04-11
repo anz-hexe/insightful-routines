@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 
 from aiogram import Bot, Router
 from aiogram.filters import Command
@@ -35,6 +36,7 @@ def make_router(bot: Bot) -> Router:
             await message.answer(
                 "Welcome back!\n\n Please use the menu to fill out forms."
             )
+            create_date_folder(existing_user.chat_id)
         session.close()
 
     return router
@@ -43,5 +45,12 @@ def make_router(bot: Bot) -> Router:
 def create_new_user_folder(new_user_id):
     directory_path = f"./data/{new_user_id}//"
 
+    if not os.path.exists(directory_path):
+        os.makedirs(directory_path)
+
+
+def create_date_folder(user_id):
+    date_today = datetime.now().strftime("%Y-%m-%d")
+    directory_path = f"./data/{user_id}/{date_today}/"
     if not os.path.exists(directory_path):
         os.makedirs(directory_path)
