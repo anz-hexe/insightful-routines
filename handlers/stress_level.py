@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from aiogram import F, Router, types
+from aiogram import Bot, F, Router, types
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
@@ -19,31 +19,33 @@ class StatesStressLevel(StatesGroup):
     save_data_in_db = State()
 
 
-@router.message(StateFilter(None), Command("stress"))
-async def start_stress_selection(message: types.Message, state: FSMContext):
-    await message.answer("Were you stressed today?", reply_markup=stress_kb())
-    await state.set_state(StatesStressLevel.choosing_stress_level)
+def make_router(bot: Bot) -> Router:
+    router = Router()
 
+    @router.message(StateFilter(None), Command("stress"))
+    async def start_stress_selection(message: types.Message, state: FSMContext):
+        await message.answer("Were you stressed today?", reply_markup=stress_kb())
+        await state.set_state(StatesStressLevel.choosing_stress_level)
 
-@router.message(StatesStressLevel.choosing_stress_level)
-async def input_stress(message: Message, state: FSMContext):
-    await state.update_data(chosen_stress_level=message.text.lower())
-    await message.answer(
-        text=f"You selected: {message.text}. Do you want to save?",
-        reply_markup=get_yes_change_kb(),
-    )
-    await state.set_state(StatesStressLevel.save_data_in_db)
+    @router.message(StatesStressLevel.choosing_stress_level)
+    async def input_stress(message: Message, state: FSMContext):
+        await state.update_data(chosen_stress_level=message.text.lower())
+        await message.answer(
+            text=f"You selected: {message.text}. Do you want to save?",
+            reply_markup=get_yes_change_kb(),
+        )
+        await state.set_state(StatesStressLevel.save_data_in_db)
 
+    @router.message(StatesStressLevel.save_data_in_db, F.text.casefold() == "yes")
+    async def process_final_decision(message: Message, state: FSMContext):
+        await save_data(message, state)
 
-@router.message(StatesStressLevel.save_data_in_db, F.text.casefold() == "yes")
-async def process_final_decision(message: Message, state: FSMContext):
-    await save_data(message, state)
+    @router.message(StatesStressLevel.save_data_in_db, F.text.casefold() == "change")
+    async def process_final_decision2(message: Message, state: FSMContext):
+        await state.clear()
+        await start_stress_selection(message, state)
 
-
-@router.message(StatesStressLevel.save_data_in_db, F.text.casefold() == "change")
-async def process_final_decision2(message: Message, state: FSMContext):
-    await state.clear()
-    await start_stress_selection(message, state)
+    return router
 
 
 async def save_data(message: Message, state: FSMContext):

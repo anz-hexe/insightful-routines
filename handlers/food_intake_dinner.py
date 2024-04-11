@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from aiogram import F, Router, types
+from aiogram import Bot, F, Router, types
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
@@ -11,8 +11,6 @@ from keyboards.yes_change import get_yes_change_kb
 from models import FoodAppliedAt, FoodIntake, User
 from models.models import Session
 
-router = Router()
-
 SELECTED_PRODUCTS_DINNER = "selected_dinner"
 
 
@@ -21,65 +19,69 @@ class StatesDinner(StatesGroup):
     save_data_in_db = State()
 
 
-@router.message(StateFilter(None), Command("dinner"))
-async def start_dinner_selection(message: types.Message, state: FSMContext):
-    await state.set_data({SELECTED_PRODUCTS_DINNER: []})
+def make_router(bot: Bot) -> Router:
+    router = Router()
 
-    await message.answer(
-        "What foods did you eat for dinner today?", reply_markup=food_kb()
-    )
-    await state.set_state(StatesDinner.choosing_dinner)
+    @router.message(StateFilter(None), Command("dinner"))
+    async def start_dinner_selection(message: types.Message, state: FSMContext):
+        await state.set_data({SELECTED_PRODUCTS_DINNER: []})
 
+        await message.answer(
+            "What foods did you eat for dinner today?", reply_markup=food_kb()
+        )
+        await state.set_state(StatesDinner.choosing_dinner)
 
-@router.message(StatesDinner.choosing_dinner)
-async def select_dinner_product(message: types.Message, state: FSMContext):
-    data = await state.get_data()
-    selected_products_dinner: list = data.get(SELECTED_PRODUCTS_DINNER)
-    valid_button_texts = []
-    for row in food_kb().keyboard:
-        for button in row:
-            valid_button_texts.append(button.text)
+    @router.message(StatesDinner.choosing_dinner)
+    async def select_dinner_product(message: types.Message, state: FSMContext):
+        data = await state.get_data()
+        selected_products_dinner: list = data.get(SELECTED_PRODUCTS_DINNER)
+        valid_button_texts = []
+        for row in food_kb().keyboard:
+            for button in row:
+                valid_button_texts.append(button.text)
 
-    if message.text == "/done":
-        await message.answer("Your selected:")
-        for product in selected_products_dinner:
-            await message.answer(product)
-        await message.answer("Do you want to save?", reply_markup=get_yes_change_kb())
-        await state.update_data(chosen_dinner=selected_products_dinner)
-        await state.set_state(StatesDinner.save_data_in_db)
-    elif message.text in valid_button_texts:
-        if message.text not in selected_products_dinner:
-            await state.set_data(
-                {
-                    SELECTED_PRODUCTS_DINNER: [
-                        message.text,
-                        *selected_products_dinner,
-                    ]
-                }
-            )
+        if message.text == "/done":
+            await message.answer("Your selected:")
+            for product in selected_products_dinner:
+                await message.answer(product)
             await message.answer(
-                f"You selected: {message.text}. Select more or click   /done   when finished."
+                "Do you want to save?", reply_markup=get_yes_change_kb()
             )
+            await state.update_data(chosen_dinner=selected_products_dinner)
+            await state.set_state(StatesDinner.save_data_in_db)
+        elif message.text in valid_button_texts:
+            if message.text not in selected_products_dinner:
+                await state.set_data(
+                    {
+                        SELECTED_PRODUCTS_DINNER: [
+                            message.text,
+                            *selected_products_dinner,
+                        ]
+                    }
+                )
+                await message.answer(
+                    f"You selected: {message.text}. Select more or click   /done   when finished."
+                )
+            else:
+                await message.answer(
+                    "You've already selected this product. Select another or click   /done   when finished."
+                )
         else:
             await message.answer(
-                "You've already selected this product. Select another or click   /done   when finished."
+                "Please select from the list or click   /done   when finished.",
+                reply_markup=food_kb(),
             )
-    else:
-        await message.answer(
-            "Please select from the list or click   /done   when finished.",
-            reply_markup=food_kb(),
-        )
 
+    @router.message(StatesDinner.save_data_in_db, F.text.casefold() == "yes")
+    async def process_final_decision_yes(message: Message, state: FSMContext):
+        await save_data(message, state)
 
-@router.message(StatesDinner.save_data_in_db, F.text.casefold() == "yes")
-async def process_final_decision_yes(message: Message, state: FSMContext):
-    await save_data(message, state)
+    @router.message(StatesDinner.save_data_in_db, F.text.casefold() == "change")
+    async def process_final_decision_change(message: Message, state: FSMContext):
+        await state.clear()
+        await start_dinner_selection(message, state)
 
-
-@router.message(StatesDinner.save_data_in_db, F.text.casefold() == "change")
-async def process_final_decision_change(message: Message, state: FSMContext):
-    await state.clear()
-    await start_dinner_selection(message, state)
+    return router
 
 
 async def save_data(message: Message, state: FSMContext):

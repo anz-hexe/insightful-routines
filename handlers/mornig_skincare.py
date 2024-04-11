@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from aiogram import F, Router, types
+from aiogram import Bot, F, Router, types
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
@@ -11,8 +11,6 @@ from keyboards.yes_change import get_yes_change_kb
 from models import AppliedAt, SkincareCosmetics, User
 from models.models import Session
 
-router = Router()
-
 SELECTED_PRODUCTS = "selected_products"
 
 
@@ -21,62 +19,68 @@ class StatesMorningSkincare(StatesGroup):
     save_data_in_db = State()
 
 
-@router.message(StateFilter(None), Command("mornig_skincare"))
-async def start_skincare_selection(message: types.Message, state: FSMContext):
-    print(f"{__file__}")
-    await state.set_data({SELECTED_PRODUCTS: []})
+def make_router(bot: Bot) -> Router:
+    router = Router()
 
-    await message.answer(
-        "What skin products did you use this morning?", reply_markup=skincare_kb()
-    )
-    await state.set_state(StatesMorningSkincare.choosing_skincare)
+    @router.message(StateFilter(None), Command("mornig_skincare"))
+    async def start_skincare_selection(message: types.Message, state: FSMContext):
+        print(f"{__file__}")
+        await state.set_data({SELECTED_PRODUCTS: []})
 
+        await message.answer(
+            "What skin products did you use this morning?", reply_markup=skincare_kb()
+        )
+        await state.set_state(StatesMorningSkincare.choosing_skincare)
 
-@router.message(StatesMorningSkincare.choosing_skincare)
-async def select_skincare_product(message: types.Message, state: FSMContext):
-    data = await state.get_data()
-    selected_products: list = data.get(SELECTED_PRODUCTS)
-    valid_button_texts = []
-    for row in skincare_kb().keyboard:
-        for button in row:
-            valid_button_texts.append(button.text)
+    @router.message(StatesMorningSkincare.choosing_skincare)
+    async def select_skincare_product(message: types.Message, state: FSMContext):
+        data = await state.get_data()
+        selected_products: list = data.get(SELECTED_PRODUCTS)
+        valid_button_texts = []
+        for row in skincare_kb().keyboard:
+            for button in row:
+                valid_button_texts.append(button.text)
 
-    if message.text == "/done":
-        await message.answer("Your selected skincare products are:")
-        for product in selected_products:
-            await message.answer(product)
-        await message.answer("Do you want to save?", reply_markup=get_yes_change_kb())
-        await state.update_data(chosen_skincare=selected_products)
-        await state.set_state(StatesMorningSkincare.save_data_in_db)
-    elif message.text in valid_button_texts:
-        if message.text not in selected_products:
-            await state.set_data(
-                {SELECTED_PRODUCTS: [message.text, *selected_products]}
-            )
+        if message.text == "/done":
+            await message.answer("Your selected skincare products are:")
+            for product in selected_products:
+                await message.answer(product)
             await message.answer(
-                f"You selected: {message.text}. Select more or click   /done   when finished."
+                "Do you want to save?", reply_markup=get_yes_change_kb()
             )
+            await state.update_data(chosen_skincare=selected_products)
+            await state.set_state(StatesMorningSkincare.save_data_in_db)
+        elif message.text in valid_button_texts:
+            if message.text not in selected_products:
+                await state.set_data(
+                    {SELECTED_PRODUCTS: [message.text, *selected_products]}
+                )
+                await message.answer(
+                    f"You selected: {message.text}. Select more or click   /done   when finished."
+                )
+            else:
+                await message.answer(
+                    "You've already selected this product. Select another or click   /done   when finished."
+                )
         else:
             await message.answer(
-                "You've already selected this product. Select another or click   /done   when finished."
+                "Please select from the list or click   /done   when finished.",
+                reply_markup=skincare_kb(),
             )
-    else:
-        await message.answer(
-            "Please select from the list or click   /done   when finished.",
-            reply_markup=skincare_kb(),
-        )
 
+    @router.message(StatesMorningSkincare.save_data_in_db, F.text.casefold() == "yes")
+    async def process_final_decision(message: Message, state: FSMContext):
+        print(f"{__file__}")
+        await save_data(message, state)
 
-@router.message(StatesMorningSkincare.save_data_in_db, F.text.casefold() == "yes")
-async def process_final_decision(message: Message, state: FSMContext):
-    print(f"{__file__}")
-    await save_data(message, state)
+    @router.message(
+        StatesMorningSkincare.save_data_in_db, F.text.casefold() == "change"
+    )
+    async def process_final_decision2(message: Message, state: FSMContext):
+        await state.clear()
+        await start_skincare_selection(message, state)
 
-
-@router.message(StatesMorningSkincare.save_data_in_db, F.text.casefold() == "change")
-async def process_final_decision2(message: Message, state: FSMContext):
-    await state.clear()
-    await start_skincare_selection(message, state)
+    return router
 
 
 async def save_data(message: Message, state: FSMContext):
