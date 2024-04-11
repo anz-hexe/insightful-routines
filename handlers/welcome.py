@@ -1,3 +1,5 @@
+import os
+
 from aiogram import Bot, Router
 from aiogram.filters import Command
 from aiogram.types import Message, ReplyKeyboardRemove
@@ -28,6 +30,7 @@ def make_router(bot: Bot) -> Router:
                 "/first_meeting",
                 reply_markup=ReplyKeyboardRemove(),
             )
+            create_new_user_folder(new_user.chat_id)
         else:
             await message.answer(
                 "Welcome back!\n\n Please use the menu to fill out forms."
@@ -35,3 +38,10 @@ def make_router(bot: Bot) -> Router:
         session.close()
 
     return router
+
+
+def create_new_user_folder(new_user_id):
+    directory_path = f"./data/{new_user_id}//"
+
+    if not os.path.exists(directory_path):
+        os.makedirs(directory_path)
