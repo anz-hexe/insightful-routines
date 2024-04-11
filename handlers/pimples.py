@@ -8,6 +8,7 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import Message, ReplyKeyboardRemove
 
 from keyboards.yes_change import get_yes_change_kb
+from keyboards.yes_no import get_yes_no_kb
 from models import Pimples, User
 from models.models import Session
 
@@ -15,42 +16,9 @@ from models.models import Session
 class StatesPimples(StatesGroup):
     choosing_pimples = State()
     save_data_in_db = State()
+    photo_ask = State()
     add_photo = State()
-
-
-async def save_data(message: Message, state: FSMContext):
-    user_data = await state.get_data()
-
-    # Assuming your session management is correctly configured
-    session = Session()
-    try:
-        # Check if user already exists
-        user = session.query(User).filter_by(chat_id=message.from_user.id).first()
-        # Now, save answers
-        user_answer = Pimples(
-            user_id=user.id,
-            pimples=user_data.get("chosen_pimples"),
-            date=datetime.today(),
-        )
-        session.add(user_answer)
-
-        session.commit()
-
-        await message.answer(
-            "Your data has been saved. Thank you!",
-            reply_markup=ReplyKeyboardRemove(),
-        )
-    except Exception as e:
-        session.rollback()
-        await message.answer(
-            "Sorry, there was an error saving your data. \n You may have already filled out this form today.",
-            reply_markup=ReplyKeyboardRemove(),
-        )
-        print(e)  # Log the error for debugging
-    finally:
-        session.close()
-        await state.clear()
-    await state.set_state(StatesPimples.add_photo)
+    finish = State()
 
 
 def make_router(bot: Bot) -> Router:
@@ -88,11 +56,74 @@ def make_router(bot: Bot) -> Router:
         await state.clear()
         await start_pimples_selection(message, state)
 
-    @router.message(StatesPimples.add_photo, F.photo)
-    async def add_photo(message: Message, state: FSMContext):
+    @router.message(StatesPimples.photo_ask, F.text.casefold() == "yes")
+    async def photo_yes(message: Message, state: FSMContext):
+        await message.answer(
+            "Please add three (3) of your full face and profile on both sides of photos from your gallery. Do not make photos with camera, please",
+            reply_markup=ReplyKeyboardRemove(),
+        )
+        await state.set_state(StatesPimples.add_photo)
+
+    @router.message(StatesPimples.add_photo)
+    async def add_photo_yes(message: Message, state: FSMContext):
+        directory_path = create_topic_folder(message.from_user.id, "pimples")
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S%f")
+
         await bot.download(
             message.photo[-1],
-            destination=f"./data/{message.photo[-1].file_id}.jpg",
+            destination=os.path.join(directory_path, f"{timestamp}.png"),
         )
+        await message.reply(
+            "Photos saved successfully!\n Please use the menu to fill out forms."
+        )
+        await state.clear()
+
+    @router.message(StatesPimples.photo_ask, F.text.casefold() == "no")
+    async def add_photo_no(message: Message, state: FSMContext):
+        await message.answer("Ok.\nPlease use the menu to fill out forms.")
+        await state.clear()
 
     return router
+
+
+async def save_data(message: Message, state: FSMContext):
+    user_data = await state.get_data()
+
+    # Assuming your session management is correctly configured
+    session = Session()
+    try:
+        # Check if user already exists
+        user = session.query(User).filter_by(chat_id=message.from_user.id).first()
+        # Now, save answers
+        user_answer = Pimples(
+            user_id=user.id,
+            pimples=user_data.get("chosen_pimples"),
+            date=datetime.today(),
+        )
+        session.add(user_answer)
+
+        session.commit()
+
+        await message.answer(
+            "Your data has been saved. Thank you! \n\nWant to add photos?",
+            reply_markup=get_yes_no_kb(),
+        )
+        await state.set_state(StatesPimples.photo_ask)
+
+    except Exception as e:
+        session.rollback()
+        await message.answer(
+            "Sorry, there was an error saving your data. \n You may have already filled out this form today.",
+            reply_markup=ReplyKeyboardRemove(),
+        )
+        print(e)  # Log the error for debugging
+    finally:
+        session.close()
+
+
+def create_topic_folder(user_id, topic: str) -> str:
+    date_today = datetime.now().strftime("%Y-%m-%d")
+    directory_path = f"./data/{user_id}/{date_today}/{topic}"
+    if not os.path.exists(directory_path):
+        os.makedirs(directory_path)
+    return directory_path
