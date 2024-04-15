@@ -59,28 +59,17 @@ def make_router(bot: Bot) -> Router:
     @router.message(StatesPimples.photo_ask, F.text.casefold() == "yes")
     async def photo_yes(message: Message, state: FSMContext):
         await message.answer(
-            "Please add three (3) of your full face and profile on both sides of photos from your gallery. Do not make photos with camera, please",
+            "Please click on command below. \n\n" "/face_photo",
             reply_markup=ReplyKeyboardRemove(),
-        )
-        await state.set_state(StatesPimples.add_photo)
-
-    @router.message(StatesPimples.add_photo)
-    async def add_photo_yes(message: Message, state: FSMContext):
-        directory_path = create_topic_folder(message.from_user.id, "pimples")
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S%f")
-
-        await bot.download(
-            message.photo[-1],
-            destination=os.path.join(directory_path, f"{timestamp}.png"),
-        )
-        await message.reply(
-            "Photos saved successfully!\n Please use the menu to fill out forms."
         )
         await state.clear()
 
     @router.message(StatesPimples.photo_ask, F.text.casefold() == "no")
     async def add_photo_no(message: Message, state: FSMContext):
-        await message.answer("Ok.\nPlease use the menu to fill out forms.")
+        await message.answer(
+            "Ok.\nPlease use the menu to fill out forms.",
+            reply_markup=ReplyKeyboardRemove(),
+        )
         await state.clear()
 
     return router

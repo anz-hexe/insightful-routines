@@ -15,6 +15,7 @@ from handlers import (
     food_intake_dinner,
     food_intake_lunch,
     mornig_skincare,
+    photo_face,
     pimples,
     snacks_intake,
     stress_level,
@@ -52,6 +53,7 @@ async def main():
     dp.include_router(workouts.make_router(bot))
     dp.include_router(water_intake.make_router(bot))
     dp.include_router(pimples.make_router(bot))
+    dp.include_router(photo_face.make_router(bot))
 
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
