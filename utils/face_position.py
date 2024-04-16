@@ -1,6 +1,16 @@
+import enum
+
 import numpy as np
 from facenet_pytorch import MTCNN
 from PIL import Image
+
+
+class ProfilePhoto(enum.Enum):
+    LEFT_PROFILE = enum.auto()
+    RIGHT_PROFILE = enum.auto()
+    FULL_FACE_PROFILE = enum.auto()
+    NO_FACES_DETECTED = enum.auto()
+
 
 mtcnn = MTCNN(
     image_size=160,
@@ -37,7 +47,7 @@ def pred_face_pose(image_path):
 
     if bbox_ is None or landmarks_ is None or prob_ is None:
         print("No faces detected in the image.")
-        return None
+        return ProfilePhoto.NO_FACES_DETECTED
 
     for bbox, landmarks, prob in zip(bbox_, landmarks_, prob_):
         if bbox is not None and prob > 0.9:
@@ -48,11 +58,11 @@ def pred_face_pose(image_path):
             angle_L_List.append(angL)
 
             if (int(angR) in range(35, 57)) and (int(angL) in range(35, 58)):
-                pred_label = "Frontal"
+                pred_label = ProfilePhoto.FULL_FACE_PROFILE
             elif angR < angL:
-                pred_label = "Left Profile"
+                pred_label = ProfilePhoto.LEFT_PROFILE
             else:
-                pred_label = "Right Profile"
+                pred_label = ProfilePhoto.RIGHT_PROFILE
 
             pred_label_list.append(pred_label)
             print(pred_label)
@@ -61,4 +71,4 @@ def pred_face_pose(image_path):
                 "The detected face is below the detection threshold or no bounding box available."
             )
 
-    return pred_label_list[-1] if pred_label_list else None
+    return pred_label_list[-1] if pred_label_list else ProfilePhoto.NO_FACES_DETECTED

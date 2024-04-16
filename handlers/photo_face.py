@@ -8,7 +8,7 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import Message, ReplyKeyboardRemove
 
 from keyboards.photo import photo_kb
-from utils.face_position import pred_face_pose
+from utils.face_position import ProfilePhoto, pred_face_pose
 
 
 class StatesTakePhoto(StatesGroup):
@@ -54,7 +54,7 @@ def make_router(bot: Bot) -> Router:
 
         side_photo = pred_face_pose(name_photo)
 
-        if side_photo == "Left Profile":
+        if side_photo == ProfilePhoto.LEFT_PROFILE:
             await message.answer("good")
             await state.set_state(StatesTakePhoto.right_profile_load)
             await message.answer("Load right photo")
@@ -76,7 +76,7 @@ def make_router(bot: Bot) -> Router:
 
         right_side_photo = pred_face_pose(name_photo)
 
-        if right_side_photo == "Right Profile":
+        if right_side_photo == ProfilePhoto.RIGHT_PROFILE:
             await message.answer("good")
             await state.set_state(StatesTakePhoto.full_face_load)
             await message.answer("Load full face photo")
@@ -100,7 +100,7 @@ def make_router(bot: Bot) -> Router:
 
         full_face_side_photo = pred_face_pose(name_photo)
 
-        if full_face_side_photo == "Frontal":
+        if full_face_side_photo == ProfilePhoto.FULL_FACE_PROFILE:
             await message.answer("good")
             await state.set_state(StatesTakePhoto.full_face_load)
             await message.answer(
