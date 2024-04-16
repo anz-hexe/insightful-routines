@@ -60,6 +60,7 @@ def make_router(bot: Bot) -> Router:
             await message.answer("Load right photo")
         else:
             await message.answer("please load other photo left side again")
+            delete_photo(name_photo)
             process_reverse_left_side(message, state)
 
     @router.message(StatesTakePhoto.right_profile_load)
@@ -82,6 +83,7 @@ def make_router(bot: Bot) -> Router:
             await message.answer("Load full face photo")
         else:
             await message.answer("please load other photo right side again")
+            delete_photo(name_photo)
             load_reverse_right_side(message, state, bot)
 
     @router.message(StatesTakePhoto.full_face_load)
@@ -109,6 +111,7 @@ def make_router(bot: Bot) -> Router:
             await state.clear()
         else:
             await message.answer("please load other photo full face side again")
+            delete_photo(name_photo)
             load_reverse_full_face_side(message, state, bot)
 
     # # ---------------------------------------------
@@ -141,6 +144,7 @@ def make_router(bot: Bot) -> Router:
             await message.answer("Load right photo")
         else:
             await message.answer("please load other photo left side again")
+            delete_photo(name_photo)
             process_preview_left_side(message, state)
 
     @router.message(StatesTakePhoto.right_profile_load)
@@ -163,6 +167,7 @@ def make_router(bot: Bot) -> Router:
             await message.answer("Load full face photo")
         else:
             await message.answer("please load other photo right side again")
+            delete_photo(name_photo)
             load_preview_right_side(message, state, bot)
 
     @router.message(StatesTakePhoto.full_face_load)
@@ -190,6 +195,7 @@ def make_router(bot: Bot) -> Router:
             await state.clear()
         else:
             await message.answer("please load other photo full face side again")
+            delete_photo(name_photo)
             load_preview_full_face_side(message, state, bot)
 
     return router
@@ -201,3 +207,12 @@ def create_topic_folder(user_id, topic: str) -> str:
     if not os.path.exists(directory_path):
         os.makedirs(directory_path)
     return directory_path
+
+
+def delete_photo(filename: str):
+    try:
+        os.remove(filename)
+        return True
+    except OSError as e:
+        print(f"Error deleting photo: {e}")
+        return False
