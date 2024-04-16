@@ -27,13 +27,13 @@ def make_router(bot: Bot) -> Router:
     @router.message(StateFilter(None), Command("face_photo"))
     async def start_select_photo(message: types.Message, state: FSMContext):
         await message.answer(
-            "Do you want to choose photos from the gallery or make them right now?",
+            "Is your photo in preview mode or in reverse mode?",
             reply_markup=photo_kb(),
         )
         await state.set_state(StatesTakePhoto.load_photo)
 
-    @router.message(StatesTakePhoto.load_photo, F.text.casefold() == "gallery")
-    async def process_gallery_left_side(message: Message, state: FSMContext):
+    @router.message(StatesTakePhoto.load_photo, F.text.casefold() == "reverse")
+    async def process_reverse_left_side(message: Message, state: FSMContext):
         await message.answer(
             "Load left photo",
             reply_markup=ReplyKeyboardRemove(),
@@ -41,7 +41,7 @@ def make_router(bot: Bot) -> Router:
         await state.set_state(StatesTakePhoto.left_profile)
 
     @router.message(StatesTakePhoto.left_profile)
-    async def load_gallery_left_side(message: Message, state: FSMContext, bot: Bot):
+    async def load_reverse_left_side(message: Message, state: FSMContext, bot: Bot):
         if not message.photo:
             await message.reply("No photo detected, please upload a photo.")
             return
@@ -60,10 +60,10 @@ def make_router(bot: Bot) -> Router:
             await message.answer("Load right photo")
         else:
             await message.answer("please load other photo left side again")
-            process_gallery_left_side(message, state)
+            process_reverse_left_side(message, state)
 
     @router.message(StatesTakePhoto.right_profile_load)
-    async def load_gallery_right_side(message: Message, state: FSMContext, bot: Bot):
+    async def load_reverse_right_side(message: Message, state: FSMContext, bot: Bot):
         if not message.photo:
             await message.reply("No photo detected, please upload a photo.")
             return
@@ -82,10 +82,10 @@ def make_router(bot: Bot) -> Router:
             await message.answer("Load full face photo")
         else:
             await message.answer("please load other photo right side again")
-            load_gallery_right_side(message, state, bot)
+            load_reverse_right_side(message, state, bot)
 
     @router.message(StatesTakePhoto.full_face_load)
-    async def load_gallery_full_face_side(
+    async def load_reverse_full_face_side(
         message: Message, state: FSMContext, bot: Bot
     ):
         if not message.photo:
@@ -109,7 +109,88 @@ def make_router(bot: Bot) -> Router:
             await state.clear()
         else:
             await message.answer("please load other photo full face side again")
-            load_gallery_full_face_side(message, state, bot)
+            load_reverse_full_face_side(message, state, bot)
+
+    # # ---------------------------------------------
+
+    @router.message(StatesTakePhoto.load_photo, F.text.casefold() == "preview")
+    async def process_preview_left_side(message: Message, state: FSMContext):
+        await message.answer(
+            "Load left photo",
+            reply_markup=ReplyKeyboardRemove(),
+        )
+        await state.set_state(StatesTakePhoto.left_profile)
+
+    @router.message(StatesTakePhoto.left_profile)
+    async def load_preview_left_side(message: Message, state: FSMContext, bot: Bot):
+        if not message.photo:
+            await message.reply("No photo detected, please upload a photo.")
+            return
+
+        directory_path = create_topic_folder(message.from_user.id, "pimples")
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S%f")
+        name_photo = os.path.join(directory_path, f"{timestamp}.png")
+
+        await bot.download(message.photo[-1], destination=name_photo)
+
+        side_photo = pred_face_pose(name_photo)
+
+        if side_photo == ProfilePhoto.RIGHT_PROFILE:
+            await message.answer("good")
+            await state.set_state(StatesTakePhoto.right_profile_load)
+            await message.answer("Load right photo")
+        else:
+            await message.answer("please load other photo left side again")
+            process_preview_left_side(message, state)
+
+    @router.message(StatesTakePhoto.right_profile_load)
+    async def load_preview_right_side(message: Message, state: FSMContext, bot: Bot):
+        if not message.photo:
+            await message.reply("No photo detected, please upload a photo.")
+            return
+
+        directory_path = create_topic_folder(message.from_user.id, "pimples")
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S%f")
+        name_photo = os.path.join(directory_path, f"{timestamp}.png")
+
+        await bot.download(message.photo[-1], destination=name_photo)
+
+        right_side_photo = pred_face_pose(name_photo)
+
+        if right_side_photo == ProfilePhoto.LEFT_PROFILE:
+            await message.answer("good")
+            await state.set_state(StatesTakePhoto.full_face_load)
+            await message.answer("Load full face photo")
+        else:
+            await message.answer("please load other photo right side again")
+            load_preview_right_side(message, state, bot)
+
+    @router.message(StatesTakePhoto.full_face_load)
+    async def load_preview_full_face_side(
+        message: Message, state: FSMContext, bot: Bot
+    ):
+        if not message.photo:
+            await message.reply("No photo detected, please upload a photo.")
+            return
+
+        directory_path = create_topic_folder(message.from_user.id, "pimples")
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S%f")
+        name_photo = os.path.join(directory_path, f"{timestamp}.png")
+
+        await bot.download(message.photo[-1], destination=name_photo)
+
+        full_face_side_photo = pred_face_pose(name_photo)
+
+        if full_face_side_photo == ProfilePhoto.FULL_FACE_PROFILE:
+            await message.answer("good")
+            await state.set_state(StatesTakePhoto.full_face_load)
+            await message.answer(
+                "Photos saved successfully!\n Please use the menu to fill out forms."
+            )
+            await state.clear()
+        else:
+            await message.answer("please load other photo full face side again")
+            load_preview_full_face_side(message, state, bot)
 
     return router
 
