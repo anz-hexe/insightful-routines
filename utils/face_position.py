@@ -1,4 +1,5 @@
 import enum
+from io import BytesIO
 
 import numpy as np
 from facenet_pytorch import MTCNN
@@ -33,8 +34,8 @@ def np_angle(a, b, c):
     return np.degrees(angle)
 
 
-def pred_face_pose(image_path):
-    im = Image.open(image_path)
+def pred_face_pose(image_obj: BytesIO):
+    im = Image.open(image_obj)
 
     if im.mode != "RGB":
         im = im.convert("RGB")
@@ -65,7 +66,6 @@ def pred_face_pose(image_path):
                 pred_label = ProfilePhoto.RIGHT_PROFILE
 
             pred_label_list.append(pred_label)
-            print(pred_label)
         else:
             print(
                 "The detected face is below the detection threshold or no bounding box available."
