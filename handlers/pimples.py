@@ -78,19 +78,15 @@ def make_router(bot: Bot) -> Router:
 async def save_data(message: Message, state: FSMContext):
     user_data = await state.get_data()
 
-    # Assuming your session management is correctly configured
     session = Session()
     try:
-        # Check if user already exists
         user = session.query(User).filter_by(chat_id=message.from_user.id).first()
-        # Now, save answers
         user_answer = Pimples(
             user_id=user.id,
             pimples=user_data.get("chosen_pimples"),
             date=datetime.today(),
         )
         session.add(user_answer)
-
         session.commit()
 
         await message.answer(
@@ -105,7 +101,8 @@ async def save_data(message: Message, state: FSMContext):
             "Sorry, there was an error saving your data. \n You may have already filled out this form today.",
             reply_markup=ReplyKeyboardRemove(),
         )
-        print(e)  # Log the error for debugging
+        await state.clear()
+        print(e)
     finally:
         session.close()
 
