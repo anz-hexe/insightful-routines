@@ -6,7 +6,7 @@ from aiogram import Bot, Router, types
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from aiogram.types import Message
+from aiogram.types import FSInputFile, Message
 from PIL import Image
 
 from models import FacePhoto, User
@@ -16,7 +16,6 @@ from utils.face_position import ProfilePhoto, pred_face_pose
 
 class StatesTakePhoto(StatesGroup):
     load_photo = State()
-    save_data_in_db = State()
 
 
 key_photo = {}
@@ -27,6 +26,9 @@ def make_router(bot: Bot) -> Router:
 
     @router.message(StateFilter(None), Command("face_photo"))
     async def start_select_photo(message: types.Message, state: FSMContext):
+        image_example = FSInputFile("content/example_photo.png")
+        await message.answer("Please upload or take three photos of your profiles.")
+        await message.answer_photo(image_example, caption="example photos")
         await message.answer("Could you please load the one side of your face?")
         await state.set_state(StatesTakePhoto.load_photo)
 
