@@ -9,6 +9,8 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import Message
 from PIL import Image
 
+from models import FacePhoto, User
+from models.models import Session
 from utils.face_position import ProfilePhoto, pred_face_pose
 
 
@@ -43,9 +45,7 @@ def make_router(bot: Bot) -> Router:
             key_photo["left"] = user_left_profile_photo
             print(key_photo)
             if ("right" in key_photo) and ("full_face" in key_photo):
-                await message.answer("All photo was saved, thanks!")
-                await state.clear()
-                key_photo.clear()
+                await save_data(message, state, key_photo)
             else:
                 await message.answer("Could you please load next photo of your face? ")
         elif side_photo == ProfilePhoto.RIGHT_PROFILE and "right" not in key_photo:
@@ -53,9 +53,7 @@ def make_router(bot: Bot) -> Router:
             key_photo["right"] = user_right_profile_photo
             print(key_photo)
             if ("left" in key_photo) and ("full_face" in key_photo):
-                await message.answer("All photo was saved, thanks!")
-                await state.clear()
-                key_photo.clear()
+                await save_data(message, state, key_photo)
             else:
                 await message.answer("Could you please load next photo of your face?")
         elif (
@@ -66,17 +64,16 @@ def make_router(bot: Bot) -> Router:
             key_photo["full_face"] = user_full_face_photo
             print(key_photo)
             if ("left" in key_photo) and ("right" in key_photo):
-                await message.answer("All photo was saved, thanks!")
-                await state.clear()
-                key_photo.clear()
+                await save_data(message, state, key_photo)
+
             else:
                 await message.answer("Could you please load next photo of your face?")
         elif side_photo == ProfilePhoto.NO_FACES_DETECTED:
-            await message.answer(
-                "Could you please load next photo of your face?\nYou are already have this side."
-            )
-        else:
             await message.answer("No photo detected face, please upload a photo.")
+        else:
+            await message.answer(
+                "Could you please load next photo of your face?\nYou are already have this side"
+            )
 
     return router
 
@@ -97,3 +94,30 @@ def save_photo(message, photo, side) -> str:
         im = Image.open(photo)
         im.save(fp)
     return name_photo
+
+
+async def save_data(message, state, data: dict):
+    with Session() as session:
+        try:
+            user = session.query(User).filter_by(chat_id=message.from_user.id).first()
+            user_answer = FacePhoto(
+                user_id=user.id,
+                date=datetime.today(),
+                photo_left=data.get("left"),
+                photo_right=data.get("right"),
+                photo_full_face=data.get("full_face"),
+            )
+
+            session.add(user_answer)
+            session.commit()
+
+            await message.answer("Your photos have been saved. Thank you!")
+        except Exception as e:
+            session.rollback()
+            await message.answer(
+                "Sorry, there was an error saving your data.\nYou may have already filled out this form today."
+            )
+            print(e)
+        finally:
+            data.clear()
+            await state.clear()

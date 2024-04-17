@@ -81,6 +81,12 @@ class User(Base):
         cascade="all, delete",
         passive_deletes=True,
     )
+    face_photo = relationship(
+        "FacePhoto",
+        back_populates="user",
+        cascade="all, delete",
+        passive_deletes=True,
+    )
 
 
 class UserAnswer(Base):

@@ -1,5 +1,6 @@
 from .base import Base
 from .drinks import DrinksAppliedAt, DrinksIntake
+from .face_photo import FacePhoto
 from .food import FoodAppliedAt, FoodIntake
 from .pimples import Pimples
 from .skincare import AppliedAt, SkincareCosmetics
@@ -27,4 +28,5 @@ __all__ = [
     "Workouts",
     "WaterIntake",
     "Pimples",
+    "FacePhoto",
 ]
