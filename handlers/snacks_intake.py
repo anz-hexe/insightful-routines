@@ -8,7 +8,7 @@ from aiogram.types import Message, ReplyKeyboardRemove
 
 from keyboards.yes_change import get_yes_change_kb
 from keyboards.yes_no import get_yes_no_kb
-from models import SnacksAppliedAt, SnacksIntake, User
+from models import SnacksIntake, User
 from models.models import Session
 
 
@@ -60,7 +60,6 @@ async def save_data(message: Message, state: FSMContext):
         user_answer = SnacksIntake(
             user_id=user.id,
             snacks=user_data.get("chosen_snacks"),
-            snacks_applied_at=SnacksAppliedAt.SNACKS,
             date=datetime.today(),
         )
         session.add(user_answer)

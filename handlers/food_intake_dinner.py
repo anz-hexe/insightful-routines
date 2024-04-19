@@ -8,7 +8,7 @@ from aiogram.types import Message, ReplyKeyboardRemove
 
 from keyboards.food import food_kb
 from keyboards.yes_change import get_yes_change_kb
-from models import FoodAppliedAt, FoodIntake, User
+from models import DinnerIntake, User
 from models.models import Session
 
 SELECTED_PRODUCTS_DINNER = "selected_dinner"
@@ -87,16 +87,15 @@ def make_router(bot: Bot) -> Router:
 async def save_data(message: Message, state: FSMContext):
     user_data = await state.get_data()
 
-    food_products_str = ", ".join(user_data.get("chosen_dinner", []))
+    dinner_products_str = ", ".join(user_data.get("chosen_dinner", []))
 
     with Session() as session:
         try:
             # session.begin()
             user = session.query(User).filter_by(chat_id=message.from_user.id).first()
-            user_answer = FoodIntake(
+            user_answer = DinnerIntake(
                 user_id=user.id,
-                food=food_products_str,
-                food_applied_at=FoodAppliedAt.DINNER,
+                dinner=dinner_products_str,
                 date=datetime.today(),
             )
 

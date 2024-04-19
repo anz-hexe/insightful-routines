@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from aiogram import Bot, F, Router, types
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
@@ -8,7 +6,7 @@ from aiogram.types import Message, ReplyKeyboardRemove
 
 from keyboards.drinks_milk import milk_kb
 from keyboards.yes_change import get_yes_change_kb
-from models import DrinksAppliedAt, DrinksIntake, User
+from models import MilkDrinksIntake, User
 from models.models import Session
 
 SELECTED_MILK = "selected_milk"
@@ -93,11 +91,9 @@ async def save_data(message: Message, state: FSMContext):
         try:
             # session.begin()
             user = session.query(User).filter_by(chat_id=message.from_user.id).first()
-            user_answer = DrinksIntake(
+            user_answer = MilkDrinksIntake(
                 user_id=user.id,
-                drinks=drinks_milk_str,
-                drinks_applied_at=DrinksAppliedAt.DRINKS_MILK,
-                date=datetime.today(),
+                milk_drinks=drinks_milk_str,
             )
 
             print(user_answer)

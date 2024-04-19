@@ -1,5 +1,8 @@
+from datetime import datetime
+
 from sqlalchemy import (
     Column,
+    Date,
     DateTime,
     Enum,
     ForeignKey,
@@ -26,21 +29,50 @@ class User(Base):
         cascade="all, delete",
         passive_deletes=True,
     )
-
-    skincare = relationship(
-        "SkincareCosmetics",
+    morning_skincare = relationship(
+        "MorningSkincare",
         back_populates="user",
         cascade="all, delete",
         passive_deletes=True,
     )
-    food = relationship(
-        "FoodIntake",
+    evening_skincare = relationship(
+        "EveningSkincare",
         back_populates="user",
         cascade="all, delete",
         passive_deletes=True,
     )
-    drinks = relationship(
-        "DrinksIntake",
+    breakfast = relationship(
+        "BreakfastIntake",
+        back_populates="user",
+        cascade="all, delete",
+        passive_deletes=True,
+    )
+    dinner = relationship(
+        "DinnerIntake",
+        back_populates="user",
+        cascade="all, delete",
+        passive_deletes=True,
+    )
+    lunch = relationship(
+        "LunchIntake",
+        back_populates="user",
+        cascade="all, delete",
+        passive_deletes=True,
+    )
+    hot_drinks = relationship(
+        "HotDrinksIntake",
+        back_populates="user",
+        cascade="all, delete",
+        passive_deletes=True,
+    )
+    milk_drinks = relationship(
+        "MilkDrinksIntake",
+        back_populates="user",
+        cascade="all, delete",
+        passive_deletes=True,
+    )
+    other_drinks = relationship(
+        "OtherDrinksIntake",
         back_populates="user",
         cascade="all, delete",
         passive_deletes=True,
@@ -94,6 +126,7 @@ class UserAnswer(Base):
 
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
+    date = Column(Date, default=datetime.now())
     question_old = Column(Enum("up to 25", "25 - 30", "30 - 45", "45+"))
     question_allergen = Column(Enum("yes", "no"))
     question_medicines = Column(Enum("yes", "no"))

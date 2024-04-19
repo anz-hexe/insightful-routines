@@ -6,18 +6,14 @@ from sqlalchemy.orm import relationship
 from . import Base
 
 
-class SnacksIntake(Base):
-    __tablename__ = "snacks"
+class HotDrinksIntake(Base):
+    __tablename__ = "hot_drinks"
 
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
     date = Column(Date, default=datetime.now())
 
-    snacks = Column(String, nullable=True, default=None)
+    hot_drinks = Column(String, nullable=True, default=None)
+    user = relationship("User", back_populates="hot_drinks")
 
-    user = relationship(
-        "User",
-        back_populates="snacks",
-    )
-
-    __table_args__ = (UniqueConstraint("user_id", "date", name="_unique_daily_snacks"),)
+    __table_args__ = (UniqueConstraint("user_id", "date", name="_unique_hot_drinks"),)

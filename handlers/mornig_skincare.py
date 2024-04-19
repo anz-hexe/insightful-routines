@@ -8,7 +8,7 @@ from aiogram.types import Message, ReplyKeyboardRemove
 
 from keyboards.skincare import skincare_kb
 from keyboards.yes_change import get_yes_change_kb
-from models import AppliedAt, SkincareCosmetics, User
+from models import MorningSkincare, User
 from models.models import Session
 
 SELECTED_PRODUCTS = "selected_products"
@@ -86,16 +86,15 @@ def make_router(bot: Bot) -> Router:
 async def save_data(message: Message, state: FSMContext):
     user_data = await state.get_data()
 
-    skincare_products_str = ", ".join(user_data.get("chosen_skincare", []))
+    morning_skincare_products_str = ", ".join(user_data.get("chosen_skincare", []))
 
     with Session() as session:
         try:
             # session.begin()
             user = session.query(User).filter_by(chat_id=message.from_user.id).first()
-            user_answer = SkincareCosmetics(
+            user_answer = MorningSkincare(
                 user_id=user.id,
-                skincare=skincare_products_str,
-                applied_at=AppliedAt.MORNING,
+                morning_skincare=morning_skincare_products_str,
                 date=datetime.today(),
             )
 

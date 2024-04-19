@@ -4,6 +4,7 @@ from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
 def workout_kb() -> ReplyKeyboardMarkup:
     kb = ReplyKeyboardBuilder()
+    kb.button(text="no")
     kb.button(text="steps")
     kb.button(text="workout in gym")
     kb.button(text="workout in outside")

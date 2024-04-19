@@ -1,10 +1,15 @@
 from .base import Base
-from .drinks import DrinksAppliedAt, DrinksIntake
+from .breakfast import BreakfastIntake
+from .dinner import DinnerIntake
+from .evening_skincare import EveningSkincare
 from .face_photo import FacePhoto
-from .food import FoodAppliedAt, FoodIntake
+from .hot_drinks import HotDrinksIntake
+from .lunch import LunchIntake
+from .milk_drinks import MilkDrinksIntake
+from .morning_skincare import MorningSkincare
+from .other_drinks import OtherDrinksIntake
 from .pimples import Pimples
-from .skincare import AppliedAt, SkincareCosmetics
-from .snacks import SnacksAppliedAt, SnacksIntake
+from .snacks import SnacksIntake
 from .stress import StressLevel
 from .supplements import Supplements
 from .user import User, UserAnswer
@@ -15,18 +20,19 @@ __all__ = [
     "Base",
     "User",
     "UserAnswer",
-    "SkincareCosmetics",
-    "AppliedAt",
-    "FoodIntake",
-    "FoodAppliedAt",
-    "DrinksIntake",
-    "DrinksAppliedAt",
     "SnacksIntake",
-    "SnacksAppliedAt",
     "StressLevel",
     "Supplements",
     "Workouts",
     "WaterIntake",
     "Pimples",
     "FacePhoto",
+    "BreakfastIntake",
+    "DinnerIntake",
+    "EveningSkincare",
+    "HotDrinksIntake",
+    "LunchIntake",
+    "MilkDrinksIntake",
+    "MorningSkincare",
+    "OtherDrinksIntake",
 ]
