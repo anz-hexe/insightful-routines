@@ -4,3 +4,4 @@ pydantic-settings==2.2.1
 rich==13.7.1
 SQLAlchemy==2.0.29
 facenet-pytorch==2.5.3
+pandas==2.2.2
