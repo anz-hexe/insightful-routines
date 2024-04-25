@@ -4,19 +4,47 @@ from aiogram import Bot, F, Router, types
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from aiogram.types import Message, ReplyKeyboardRemove
+from aiogram.types import Message, ReplyKeyboardMarkup, ReplyKeyboardRemove
+from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
-from keyboards.food import food_kb
 from keyboards.yes_change import get_yes_change_kb
 from models import DinnerIntake, User
 from models.models import Session
 
-SELECTED_PRODUCTS_DINNER = "selected_dinner"
+SELECTED_DINNER_PRODUCTS = "selected_dinner_products"
 
 
-class StatesDinner(StatesGroup):
+class DinnerStatesGroup(StatesGroup):
     choosing_dinner = State()
-    save_data_in_db = State()
+    saving_data_in_db = State()
+
+
+def create_food_keyboard() -> ReplyKeyboardMarkup:
+    keyboard_builder = ReplyKeyboardBuilder()
+    food_options = [
+        "red food",
+        "greens",
+        "red meat",
+        "white meat",
+        "fish",
+        "seafood",
+        "gluten",
+        "starch",
+        "lactose",
+        "other type of sugar",
+        "nightshade",
+        "white sugar",
+        "sweetener",
+        "mushrooms",
+        "fruits",
+        "sweets",
+        "eggs",
+        "nothing",
+    ]
+    for option in food_options:
+        keyboard_builder.button(text=option)
+    keyboard_builder.adjust(2)
+    return keyboard_builder.as_markup(resize_keyboard=True)
 
 
 def make_router(bot: Bot) -> Router:
@@ -24,38 +52,38 @@ def make_router(bot: Bot) -> Router:
 
     @router.message(StateFilter(None), Command("dinner"))
     async def start_dinner_selection(message: types.Message, state: FSMContext):
-        await state.set_data({SELECTED_PRODUCTS_DINNER: []})
+        await state.set_data({SELECTED_DINNER_PRODUCTS: []})
 
         await message.answer(
-            "What foods did you eat for dinner today?", reply_markup=food_kb()
+            "What foods did you eat for dinner today?",
+            reply_markup=create_food_keyboard(),
         )
-        await state.set_state(StatesDinner.choosing_dinner)
+        await state.set_state(DinnerStatesGroup.choosing_dinner)
 
-    @router.message(StatesDinner.choosing_dinner)
-    async def select_dinner_product(message: types.Message, state: FSMContext):
+    @router.message(DinnerStatesGroup.choosing_dinner)
+    async def select_dinner_food(message: types.Message, state: FSMContext):
         data = await state.get_data()
-        selected_products_dinner: list = data.get(SELECTED_PRODUCTS_DINNER)
-        valid_button_texts = []
-        for row in food_kb().keyboard:
-            for button in row:
-                valid_button_texts.append(button.text)
+        selected_dinner_products: list = data.get(SELECTED_DINNER_PRODUCTS)
+        valid_options = [
+            button.text for row in create_food_keyboard().keyboard for button in row
+        ]
 
         if message.text == "/done":
             await message.answer("Your selected:")
-            for product in selected_products_dinner:
+            for product in selected_dinner_products:
                 await message.answer(product)
             await message.answer(
                 "Do you want to save?", reply_markup=get_yes_change_kb()
             )
-            await state.update_data(chosen_dinner=selected_products_dinner)
-            await state.set_state(StatesDinner.save_data_in_db)
-        elif message.text in valid_button_texts:
-            if message.text not in selected_products_dinner:
+            await state.update_data(chosen_dinner=selected_dinner_products)
+            await state.set_state(DinnerStatesGroup.saving_data_in_db)
+        elif message.text in valid_options:
+            if message.text not in selected_dinner_products:
                 await state.set_data(
                     {
-                        SELECTED_PRODUCTS_DINNER: [
+                        SELECTED_DINNER_PRODUCTS: [
                             message.text,
-                            *selected_products_dinner,
+                            *selected_dinner_products,
                         ]
                     }
                 )
@@ -69,15 +97,15 @@ def make_router(bot: Bot) -> Router:
         else:
             await message.answer(
                 "Please select from the list or click   /done   when finished.",
-                reply_markup=food_kb(),
+                reply_markup=create_food_keyboard(),
             )
 
-    @router.message(StatesDinner.save_data_in_db, F.text.casefold() == "yes")
-    async def process_final_decision_yes(message: Message, state: FSMContext):
+    @router.message(DinnerStatesGroup.saving_data_in_db, F.text.casefold() == "yes")
+    async def save_dinner_data(message: Message, state: FSMContext):
         await save_data(message, state)
 
-    @router.message(StatesDinner.save_data_in_db, F.text.casefold() == "change")
-    async def process_final_decision_change(message: Message, state: FSMContext):
+    @router.message(DinnerStatesGroup.saving_data_in_db, F.text.casefold() == "change")
+    async def change_dinner_selection(message: Message, state: FSMContext):
         await state.clear()
         await start_dinner_selection(message, state)
 
@@ -91,7 +119,6 @@ async def save_data(message: Message, state: FSMContext):
 
     with Session() as session:
         try:
-            # session.begin()
             user = session.query(User).filter_by(chat_id=message.from_user.id).first()
             user_answer = DinnerIntake(
                 user_id=user.id,
@@ -115,6 +142,6 @@ async def save_data(message: Message, state: FSMContext):
                 "Sorry, there was an error saving your data. \n You may have already filled out this form today.",
                 reply_markup=ReplyKeyboardRemove(),
             )
-            print(e)  # Log the error for debugging
+            print(e)
         finally:
             await state.clear()

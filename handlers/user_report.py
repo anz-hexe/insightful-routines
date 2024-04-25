@@ -1,5 +1,5 @@
 import pandas as pd
-from aiogram import Bot, Router
+from aiogram import Bot, F, Router
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
@@ -28,9 +28,8 @@ from models import (
 from models.models import Session
 
 
-class StatesReport(StatesGroup):
+class ReportStatesGroup(StatesGroup):
     reporting = State()
-    save_data_in_db = State()
 
 
 def make_router(bot: Bot) -> Router:
@@ -39,12 +38,12 @@ def make_router(bot: Bot) -> Router:
     @router.message(StateFilter(None), Command("report"))
     async def start_reporting(message: Message, state: FSMContext):
         await message.answer(
-            "Do you want to receive a report?", reply_markup=get_yes_no_kb()
+            "Would you like to receive a report?", reply_markup=get_yes_no_kb()
         )
-        await state.set_state(StatesReport.reporting)
+        await state.set_state(ReportStatesGroup.reporting)
 
-    @router.message(StatesReport.reporting)
-    async def get_data(message: Message, state: FSMContext):
+    @router.message(ReportStatesGroup.reporting, F.text.casefold() == "yes")
+    async def generate_report(message: Message, state: FSMContext):
         session = Session()
 
         query = (
@@ -90,5 +89,19 @@ def make_router(bot: Bot) -> Router:
             print(pd.read_sql(query.statement, conn))
             data = pd.read_sql(query.statement, conn)
             data.to_csv(f"data/report_user_{message.from_user.id}.csv", index=False)
+
+        await message.answer(
+            "Please wait for the report.",
+            reply_markup=ReplyKeyboardRemove(),
+        )
+        await state.clear()
+
+    @router.message(ReportStatesGroup.reporting, F.text.casefold() == "no")
+    async def skip_report(message: Message, state: FSMContext):
+        await message.answer(
+            "Okay. Please use the menu for other actions.",
+            reply_markup=ReplyKeyboardRemove(),
+        )
+        await state.clear()
 
     return router

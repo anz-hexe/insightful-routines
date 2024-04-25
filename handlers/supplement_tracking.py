@@ -8,42 +8,47 @@ from aiogram.types import Message, ReplyKeyboardRemove
 
 from keyboards.yes_change import get_yes_change_kb
 from keyboards.yes_no import get_yes_no_kb
-from models import SnacksIntake, User
+from models import Supplements, User
 from models.models import Session
 
 
-class StatesSnacks(StatesGroup):
-    choosing_snacks = State()
-    save_data_in_db = State()
+class SupplementsStatesGroup(StatesGroup):
+    choosing_supplements = State()
+    saving_data_in_db = State()
 
 
 def make_router(bot: Bot) -> Router:
     router = Router()
 
-    @router.message(StateFilter(None), Command("snacks"))
-    async def start_snacks_selection(message: types.Message, state: FSMContext):
+    @router.message(StateFilter(None), Command("supplements"))
+    async def start_supplements_selection(message: types.Message, state: FSMContext):
         await message.answer(
-            "Did you have any snacks today?", reply_markup=get_yes_no_kb()
+            "Did you take any supplements?", reply_markup=get_yes_no_kb()
         )
-        await state.set_state(StatesSnacks.choosing_snacks)
+        await state.set_state(SupplementsStatesGroup.choosing_supplements)
 
-    @router.message(StatesSnacks.choosing_snacks)
-    async def input_snacks(message: Message, state: FSMContext):
-        await state.update_data(chosen_snacks=message.text.lower())
+    @router.message(SupplementsStatesGroup.choosing_supplements)
+    async def input_supplements(message: Message, state: FSMContext):
+        chosen_supplements = message.text.lower()
+        await state.update_data(chosen_supplements=chosen_supplements)
         await message.answer(
             text=f"You selected: {message.text}. Do you want to save?",
             reply_markup=get_yes_change_kb(),
         )
-        await state.set_state(StatesSnacks.save_data_in_db)
+        await state.set_state(SupplementsStatesGroup.saving_data_in_db)
 
-    @router.message(StatesSnacks.save_data_in_db, F.text.casefold() == "yes")
-    async def process_final_decision(message: Message, state: FSMContext):
+    @router.message(
+        SupplementsStatesGroup.saving_data_in_db, F.text.casefold() == "yes"
+    )
+    async def save_supplements_data(message: Message, state: FSMContext):
         await save_data(message, state)
 
-    @router.message(StatesSnacks.save_data_in_db, F.text.casefold() == "change")
-    async def process_final_decision2(message: Message, state: FSMContext):
+    @router.message(
+        SupplementsStatesGroup.saving_data_in_db, F.text.casefold() == "change"
+    )
+    async def change_supplements_selection(message: Message, state: FSMContext):
         await state.clear()
-        await start_snacks_selection(message, state)
+        await start_supplements_selection(message, state)
 
     return router
 
@@ -51,18 +56,16 @@ def make_router(bot: Bot) -> Router:
 async def save_data(message: Message, state: FSMContext):
     user_data = await state.get_data()
 
-    # Assuming your session management is correctly configured
     session = Session()
     try:
-        # Check if user already exists
         user = session.query(User).filter_by(chat_id=message.from_user.id).first()
-        # Now, save answers
-        user_answer = SnacksIntake(
+
+        supplements_entry = Supplements(
             user_id=user.id,
-            snacks=user_data.get("chosen_snacks"),
+            supplements=user_data.get("chosen_supplements"),
             date=datetime.today(),
         )
-        session.add(user_answer)
+        session.add(supplements_entry)
 
         session.commit()
 
@@ -76,7 +79,7 @@ async def save_data(message: Message, state: FSMContext):
             "Sorry, there was an error saving your data. \n You may have already filled out this form today.",
             reply_markup=ReplyKeyboardRemove(),
         )
-        print(e)  # Log the error for debugging
+        print(e)
     finally:
         session.close()
         await state.clear()

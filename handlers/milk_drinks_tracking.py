@@ -2,56 +2,67 @@ from aiogram import Bot, F, Router, types
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from aiogram.types import Message, ReplyKeyboardRemove
+from aiogram.types import Message, ReplyKeyboardMarkup, ReplyKeyboardRemove
+from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
-from keyboards.drinks_milk import milk_kb
 from keyboards.yes_change import get_yes_change_kb
 from models import MilkDrinksIntake, User
 from models.models import Session
 
-SELECTED_MILK = "selected_milk"
+SELECTED_MILK_DRINKS = "selected_milk"
 
 
-class StatesDrinksMilk(StatesGroup):
+class MilkDrinksStateGroup(StatesGroup):
     choosing_milk = State()
     save_data_in_db = State()
+
+
+def create_milk_drinks_keyboard() -> ReplyKeyboardMarkup:
+    kb = ReplyKeyboardBuilder()
+    kb.button(text="yes, cow")
+    kb.button(text="yes, lactose free")
+    kb.button(text="yes, alternative")
+    kb.button(text="no")
+    kb.adjust(2)
+    return kb.as_markup(resize_keyboard=True)
 
 
 def make_router(bot: Bot) -> Router:
     router = Router()
 
     @router.message(StateFilter(None), Command("milk_drinks"))
-    async def start_milk_selection(message: types.Message, state: FSMContext):
-        await state.set_data({SELECTED_MILK: []})
+    async def start_milk_drinks_selection(message: types.Message, state: FSMContext):
+        await state.set_data({SELECTED_MILK_DRINKS: []})
 
         await message.answer(
-            "What kind of milk did you drink today?", reply_markup=milk_kb()
+            "What kind of milk did you drink today?",
+            reply_markup=create_milk_drinks_keyboard(),
         )
-        await state.set_state(StatesDrinksMilk.choosing_milk)
+        await state.set_state(MilkDrinksStateGroup.choosing_milk)
 
-    @router.message(StatesDrinksMilk.choosing_milk)
-    async def select_milk(message: types.Message, state: FSMContext):
+    @router.message(MilkDrinksStateGroup.choosing_milk)
+    async def handle_milk_drinks_selection(message: types.Message, state: FSMContext):
         data = await state.get_data()
-        selected_products_milk: list = data.get(SELECTED_MILK)
+        selected_products_milk: list = data.get(SELECTED_MILK_DRINKS)
         valid_button_texts = []
-        for row in milk_kb().keyboard:
+        for row in create_milk_drinks_keyboard().keyboard:
             for button in row:
                 valid_button_texts.append(button.text)
 
         if message.text == "/done":
-            await message.answer("Your selected:")
+            await message.answer("Your selected drinks:")
             for product in selected_products_milk:
                 await message.answer(product)
             await message.answer(
                 "Do you want to save?", reply_markup=get_yes_change_kb()
             )
             await state.update_data(chosen_milk=selected_products_milk)
-            await state.set_state(StatesDrinksMilk.save_data_in_db)
+            await state.set_state(MilkDrinksStateGroup.save_data_in_db)
         elif message.text in valid_button_texts:
             if message.text not in selected_products_milk:
                 await state.set_data(
                     {
-                        SELECTED_MILK: [
+                        SELECTED_MILK_DRINKS: [
                             message.text,
                             *selected_products_milk,
                         ]
@@ -67,38 +78,35 @@ def make_router(bot: Bot) -> Router:
         else:
             await message.answer(
                 "Please select from the list or click   /done   when finished.",
-                reply_markup=milk_kb(),
+                reply_markup=create_milk_drinks_keyboard(),
             )
 
-    @router.message(StatesDrinksMilk.save_data_in_db, F.text.casefold() == "yes")
-    async def process_final_decision_yes(message: Message, state: FSMContext):
-        await save_data(message, state)
+    @router.message(MilkDrinksStateGroup.save_data_in_db, F.text.casefold() == "yes")
+    async def save_milk_drinks_data(message: Message, state: FSMContext):
+        await save_milk_drinks(message, state)
 
-    @router.message(StatesDrinksMilk.save_data_in_db, F.text.casefold() == "change")
-    async def process_final_decision_change(message: Message, state: FSMContext):
+    @router.message(MilkDrinksStateGroup.save_data_in_db, F.text.casefold() == "change")
+    async def change_milk_drinks_selection(message: Message, state: FSMContext):
         await state.clear()
-        await start_milk_selection(message, state)
+        await start_milk_drinks_selection(message, state)
 
     return router
 
 
-async def save_data(message: Message, state: FSMContext):
+async def save_milk_drinks(message: Message, state: FSMContext):
     user_data = await state.get_data()
 
-    drinks_milk_str = ", ".join(user_data.get("chosen_milk", []))
+    milk_drinks_str = ", ".join(user_data.get("chosen_milk", []))
 
     with Session() as session:
         try:
-            # session.begin()
             user = session.query(User).filter_by(chat_id=message.from_user.id).first()
-            user_answer = MilkDrinksIntake(
+            milk_drinks_intake = MilkDrinksIntake(
                 user_id=user.id,
-                milk_drinks=drinks_milk_str,
+                milk_drinks=milk_drinks_str,
             )
 
-            print(user_answer)
-
-            session.add(user_answer)
+            session.add(milk_drinks_intake)
 
             session.commit()
 
@@ -112,6 +120,6 @@ async def save_data(message: Message, state: FSMContext):
                 "Sorry, there was an error saving your data. \n You may have already filled out this form today.",
                 reply_markup=ReplyKeyboardRemove(),
             )
-            print(e)  # Log the error for debugging
+            print(e)
         finally:
             await state.clear()

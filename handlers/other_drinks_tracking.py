@@ -4,9 +4,9 @@ from aiogram import Bot, F, Router, types
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from aiogram.types import Message, ReplyKeyboardRemove
+from aiogram.types import Message, ReplyKeyboardMarkup, ReplyKeyboardRemove
+from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
-from keyboards.drinks_other import other_drinks_kb
 from keyboards.yes_change import get_yes_change_kb
 from models import OtherDrinksIntake, User
 from models.models import Session
@@ -14,9 +14,23 @@ from models.models import Session
 SELECTED_OTHER_DRINKS = "selected_other_drinks"
 
 
-class StatesDrinksOther(StatesGroup):
-    choosing_drinks_other = State()
+class OtherDrinksStateGroup(StatesGroup):
+    choosing_other_drinks = State()
     save_data_in_db = State()
+
+
+def create_other_drinks_keyboard() -> ReplyKeyboardMarkup:
+    kb = ReplyKeyboardBuilder()
+    kb.button(text="alcohol")
+    kb.button(text="energy drink")
+    kb.button(text="juice")
+    kb.button(text="soft drink")
+    kb.button(text="sparkling mineral water")
+    kb.button(text="no")
+    # TODO
+    # kb.button(text="other")
+    kb.adjust(2)
+    return kb.as_markup(resize_keyboard=True)
 
 
 def make_router(bot: Bot) -> Router:
@@ -27,35 +41,36 @@ def make_router(bot: Bot) -> Router:
         await state.set_data({SELECTED_OTHER_DRINKS: []})
 
         await message.answer(
-            "What other drinks did you drink today?", reply_markup=other_drinks_kb()
+            "What other drinks did you drink today?",
+            reply_markup=create_other_drinks_keyboard(),
         )
-        await state.set_state(StatesDrinksOther.choosing_drinks_other)
+        await state.set_state(OtherDrinksStateGroup.choosing_other_drinks)
 
-    @router.message(StatesDrinksOther.choosing_drinks_other)
-    async def select_drinks_other(message: types.Message, state: FSMContext):
+    @router.message(OtherDrinksStateGroup.choosing_other_drinks)
+    async def handle_other_drinks_selection(message: types.Message, state: FSMContext):
         data = await state.get_data()
-        selected_products_drinks_other: list = data.get(SELECTED_OTHER_DRINKS)
-        valid_button_texts = []
-        for row in other_drinks_kb().keyboard:
+        selected_other_drinks: list = data.get(SELECTED_OTHER_DRINKS)
+        valid_options = []
+        for row in create_other_drinks_keyboard().keyboard:
             for button in row:
-                valid_button_texts.append(button.text)
+                valid_options.append(button.text)
 
         if message.text == "/done":
             await message.answer("Your selected:")
-            for product in selected_products_drinks_other:
+            for product in selected_other_drinks:
                 await message.answer(product)
             await message.answer(
                 "Do you want to save?", reply_markup=get_yes_change_kb()
             )
-            await state.update_data(chosen_drinks_other=selected_products_drinks_other)
-            await state.set_state(StatesDrinksOther.save_data_in_db)
-        elif message.text in valid_button_texts:
-            if message.text not in selected_products_drinks_other:
+            await state.update_data(chosen_other_drinks=selected_other_drinks)
+            await state.set_state(OtherDrinksStateGroup.save_data_in_db)
+        elif message.text in valid_options:
+            if message.text not in selected_other_drinks:
                 await state.set_data(
                     {
                         SELECTED_OTHER_DRINKS: [
                             message.text,
-                            *selected_products_drinks_other,
+                            *selected_other_drinks,
                         ]
                     }
                 )
@@ -69,37 +84,38 @@ def make_router(bot: Bot) -> Router:
         else:
             await message.answer(
                 "Please select from the list or click   /done   when finished.",
-                reply_markup=other_drinks_kb(),
+                reply_markup=create_other_drinks_keyboard(),
             )
 
-    @router.message(StatesDrinksOther.save_data_in_db, F.text.casefold() == "yes")
-    async def process_final_decision_yes(message: Message, state: FSMContext):
-        await save_data(message, state)
+    @router.message(OtherDrinksStateGroup.save_data_in_db, F.text.casefold() == "yes")
+    async def save_other_drinks_data(message: Message, state: FSMContext):
+        await save_other_drinks(message, state)
 
-    @router.message(StatesDrinksOther.save_data_in_db, F.text.casefold() == "change")
-    async def process_final_decision_change(message: Message, state: FSMContext):
+    @router.message(
+        OtherDrinksStateGroup.save_data_in_db, F.text.casefold() == "change"
+    )
+    async def change_other_drinks_selection(message: Message, state: FSMContext):
         await state.clear()
         await start_other_drinks_selection(message, state)
 
     return router
 
 
-async def save_data(message: Message, state: FSMContext):
+async def save_other_drinks(message: Message, state: FSMContext):
     user_data = await state.get_data()
 
-    drinks_other_str = ", ".join(user_data.get("chosen_drinks_other", []))
+    other_drinks_str = ", ".join(user_data.get("chosen_other_drinks", []))
 
     with Session() as session:
         try:
-            # session.begin()
             user = session.query(User).filter_by(chat_id=message.from_user.id).first()
-            user_answer = OtherDrinksIntake(
+            other_drinks_intake = OtherDrinksIntake(
                 user_id=user.id,
-                other_drinks=drinks_other_str,
+                other_drinks=other_drinks_str,
                 date=datetime.today(),
             )
 
-            session.add(user_answer)
+            session.add(other_drinks_intake)
 
             session.commit()
 
@@ -113,6 +129,6 @@ async def save_data(message: Message, state: FSMContext):
                 "Sorry, there was an error saving your data. \n You may have already filled out this form today.",
                 reply_markup=ReplyKeyboardRemove(),
             )
-            print(e)  # Log the error for debugging
+            print(e)
         finally:
             await state.clear()

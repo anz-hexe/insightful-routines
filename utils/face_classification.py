@@ -24,7 +24,7 @@ mtcnn = MTCNN(
 )
 
 
-def np_angle(a, b, c):
+def calculate_angle(a, b, c):
     ba = np.array(a) - np.array(b)
     bc = np.array(c) - np.array(b)
 
@@ -34,7 +34,7 @@ def np_angle(a, b, c):
     return np.degrees(angle)
 
 
-def pred_face_pose(image_obj: BytesIO):
+def predict_face_pose(image_obj: BytesIO):
     im = Image.open(image_obj)
 
     if im.mode != "RGB":
@@ -52,8 +52,8 @@ def pred_face_pose(image_obj: BytesIO):
 
     for bbox, landmarks, prob in zip(bbox_, landmarks_, prob_):
         if bbox is not None and prob > 0.9:
-            angR = np_angle(landmarks[0], landmarks[1], landmarks[2])
-            angL = np_angle(landmarks[1], landmarks[0], landmarks[2])
+            angR = calculate_angle(landmarks[0], landmarks[1], landmarks[2])
+            angL = calculate_angle(landmarks[1], landmarks[0], landmarks[2])
 
             angle_R_List.append(angR)
             angle_L_List.append(angL)
