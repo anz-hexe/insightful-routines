@@ -6,10 +6,10 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import Message, ReplyKeyboardRemove
 
-from keyboards.yes_change import get_yes_change_kb
-from keyboards.yes_no import get_yes_no_kb
-from models import Supplements, User
-from models.models import Session
+from insightful_routines.keyboards.yes_change import get_yes_change_kb
+from insightful_routines.keyboards.yes_no import get_yes_no_kb
+from insightful_routines.models import Supplements, User
+from insightful_routines.models.models import Session
 
 
 class SupplementsStatesGroup(StatesGroup):

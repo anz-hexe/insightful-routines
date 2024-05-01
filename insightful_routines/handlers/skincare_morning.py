@@ -6,9 +6,10 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import Message, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
-from keyboards.yes_change import get_yes_change_kb
-from models import MorningSkincare, User
-from models.models import Session
+
+from insightful_routines.keyboards.yes_change import get_yes_change_kb
+from insightful_routines.models import MorningSkincare, User
+from insightful_routines.models.models import Session
 
 SELECTED_MORNING_SKINCARE_PRODUCTS = "selected_morning_skincare_products"
 

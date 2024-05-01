@@ -9,8 +9,8 @@ from aiogram.types import (
     ReplyKeyboardRemove,
 )
 
-from models import User, UserAnswer
-from models.models import Session
+from insightful_routines.models import User, UserAnswer
+from insightful_routines.models.models import Session
 
 CHOICES_AGE_GROUP = ["up to 25", "25 - 30", "30 - 45", "45+"]
 CHOICES_ALLERGIES = ["yes", "no", "not that i'm aware of"]

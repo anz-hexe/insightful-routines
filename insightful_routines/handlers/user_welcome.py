@@ -5,8 +5,8 @@ from aiogram import Bot, Router
 from aiogram.filters import Command
 from aiogram.types import Message, ReplyKeyboardRemove
 
-from models import User
-from models.models import Session
+from insightful_routines.models import User
+from insightful_routines.models.models import Session
 
 
 def make_router(bot: Bot) -> Router:

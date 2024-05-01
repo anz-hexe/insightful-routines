@@ -7,9 +7,9 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import Message, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
-from keyboards.yes_change import get_yes_change_kb
-from models import User, Workouts
-from models.models import Session
+from insightful_routines.keyboards.yes_change import get_yes_change_kb
+from insightful_routines.models import User, Workouts
+from insightful_routines.models.models import Session
 
 
 class WorkoutsStatesGroup(StatesGroup):

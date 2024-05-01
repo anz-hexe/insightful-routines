@@ -3,17 +3,18 @@ from datetime import datetime
 from importlib import resources as impresources
 from io import BytesIO
 
-import content
 from aiogram import Bot, Router, types
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import FSInputFile, Message
 from importlib_resources import as_file
-from models import FacePhoto, User
-from models.models import Session
 from PIL import Image
-from utils.face_position import ProfilePhoto, predict_face_pose
+
+import insightful_routines.content
+from insightful_routines.models import FacePhoto, User
+from insightful_routines.models.models import Session
+from insightful_routines.utils.face_position import ProfilePhoto, predict_face_pose
 
 PHOTOS_BY_SIDE = {}
 
@@ -27,7 +28,9 @@ def make_router(bot: Bot) -> Router:
 
     @router.message(StateFilter(None), Command("face_photo"))
     async def start_photo_selection(message: types.Message, state: FSMContext):
-        image_example = impresources.files(content) / "example_photo.png"
+        image_example = (
+            impresources.files(insightful_routines.content) / "example_photo.png"
+        )
         with as_file(image_example) as fp:
             await message.answer_photo(FSInputFile(fp), caption="Example photos")
         await message.answer(

@@ -5,8 +5,8 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import Message, ReplyKeyboardRemove
 
-from keyboards.yes_no import get_yes_no_kb
-from models import (
+from insightful_routines.keyboards.yes_no import get_yes_no_kb
+from insightful_routines.models import (
     BreakfastIntake,
     DinnerIntake,
     EveningSkincare,
@@ -25,7 +25,7 @@ from models import (
     WaterIntake,
     Workouts,
 )
-from models.models import Session
+from insightful_routines.models.models import Session
 
 
 class ReportStatesGroup(StatesGroup):
