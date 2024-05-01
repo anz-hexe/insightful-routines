@@ -4,8 +4,8 @@ import logging
 from aiogram import Bot, Dispatcher
 from rich.logging import RichHandler
 
-from config import Config
-from handlers import (
+from insightful_routines.config import Config
+from insightful_routines.handlers import (
     breakfast_food_intake,
     dinner_food_intake,
     face_photo_processing,
@@ -25,11 +25,18 @@ from handlers import (
     water_tracking,
     workout_tracking,
 )
-from models.models import init_db
-from settings import create_data_folder
+from insightful_routines.models.models import init_db
+from insightful_routines.settings import create_data_folder
 
 
-async def main():
+async def aiogram_on_startup_polling(dispatcher: Dispatcher, bot: Bot) -> None:
+    await bot.delete_webhook(drop_pending_updates=True)
+
+
+def main():
+    logging.basicConfig(
+        level=logging.INFO, format="%(message)s", handlers=[RichHandler()]
+    )
     create_data_folder("data")
     init_db()
 
@@ -57,12 +64,9 @@ async def main():
     dp.include_router(face_photo_processing.make_router(bot))
     dp.include_router(user_report.make_router(bot))
 
-    await bot.delete_webhook(drop_pending_updates=True)
-    await dp.start_polling(bot)
+    dp.shutdown.register(aiogram_on_startup_polling)
+    asyncio.run(dp.start_polling(bot))
 
 
 if __name__ == "__main__":
-    logging.basicConfig(
-        level=logging.INFO, format="%(message)s", handlers=[RichHandler()]
-    )
-    asyncio.run(main())
+    main()
