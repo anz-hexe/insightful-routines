@@ -4,4 +4,4 @@ RUN apt update \
     && apt install --no-install-recommends -y git python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip install git+https://github.com/anz-hexe/insightful-routines.git
+RUN pip install git+https://github.com/anz-hexe/insightful-routines.git@0.1.0
