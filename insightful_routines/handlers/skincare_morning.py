@@ -6,7 +6,6 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import Message, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
-
 from keyboards.yes_change import get_yes_change_kb
 from models import MorningSkincare, User
 from models.models import Session
@@ -26,7 +25,7 @@ def create_morning_skincare_keyboard() -> ReplyKeyboardMarkup:
         "toner",
         "serum",
         "eye cream",
-        "moisturizer",
+        "cream",
         "patch",
         "eye patches",
         "sunscreen",
