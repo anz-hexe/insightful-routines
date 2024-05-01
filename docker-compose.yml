@@ -1,0 +1,14 @@
+---
+services:
+  insightful-routines:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: insightful-routines:latest
+    working_dir: "/app"
+    volumes:
+      - "${PWD}/data/:/app/data/"
+      - "${PWD}/.env:/app/.env:ro"
+    restart: unless-stopped
+
+    command: insightful-routines-bot
