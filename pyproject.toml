@@ -1,21 +1,24 @@
 [tool.poetry]
 name = "insightful-routines"
 version = "0.1.0"
-description = ""
+description = "This is a package for 'insightful-routines' Telegram bot"
 authors = ["Anzhelina Shevchuk"]
 readme = "README.md"
-packages = [{include = "insightful-routines"}]
+packages = [{include = "insightful_routines"}]
+license = "GPL-3.0-only"
+repository = "https://github.com/anz-hexe/insightful-routines"
+
 
 [tool.poetry.dependencies]
 python = "^3.11"
-aiogram = "3.4.1"
-pydantic = "2.5.3"
-pydantic-settings = "2.2.1"
-rich = "13.7.1"
-SQLAlchemy = "2.0.29"
-facenet-pytorch = "2.5.3"
-pandas = "2.2.2"
-importlib_resources = "6.4.0"
+aiogram = "^3.4.1"
+pydantic = "^2.5.3"
+pydantic-settings = "^2.2.1"
+rich = "^13.7.1"
+SQLAlchemy = "^2.0.29"
+facenet-pytorch = "^2.5.3"
+pandas = "^2.2.2"
+importlib_resources = "^6.4.0"
 
 [tool.poetry.scripts]
 insightful-routines-bot = 'insightful_routines.main:main'
