@@ -11,12 +11,9 @@ from aiogram.types import (
 
 from insightful_routines.models import User, UserAnswer
 from insightful_routines.models.models import Session
-from insightful_routines.types import Allergies
+from insightful_routines.types import AgeGroup, Allergies, SkinType
 
-CHOICES_AGE_GROUP = ["up to 25", "25 - 30", "30 - 45", "45+"]
-# CHOICES_ALLERGIES = ["yes", "no", "not that i'm aware of"]
 CHOICES_MEDICATIONS = ["yes", "no"]
-CHOICES_SKIN_TYPE = ["normal", "dry", "oily", "combination", "sensitive"]
 CHOICES_DATA_MANAGEMENT = ["yes", "change"]
 
 
@@ -43,11 +40,11 @@ def make_router(bot: Bot) -> Router:
     async def start_first_meeting(message: Message, state: FSMContext):
         await message.answer(
             text="How old are you?",
-            reply_markup=create_reply_keyboard(CHOICES_AGE_GROUP),
+            reply_markup=create_reply_keyboard(AgeGroup.as_list()),
         )
         await state.set_state(FirstMeetStateGroup.choosing_age)
 
-    @router.message(FirstMeetStateGroup.choosing_age, F.text.in_(CHOICES_AGE_GROUP))
+    @router.message(FirstMeetStateGroup.choosing_age, F.text.in_(AgeGroup.as_list()))
     async def input_age_group(message: Message, state: FSMContext):
         await state.update_data(chosen_age_group=message.text.lower())
         await message.answer(
@@ -74,12 +71,12 @@ def make_router(bot: Bot) -> Router:
         await state.update_data(chosen_medications=message.text.lower())
         await message.answer(
             text="What skin type do you have?",
-            reply_markup=create_reply_keyboard(CHOICES_SKIN_TYPE),
+            reply_markup=create_reply_keyboard(SkinType.as_list()),
         )
         await state.set_state(FirstMeetStateGroup.choosing_skin_type)
 
     @router.message(
-        FirstMeetStateGroup.choosing_skin_type, F.text.in_(CHOICES_SKIN_TYPE)
+        FirstMeetStateGroup.choosing_skin_type, F.text.in_(SkinType.as_list())
     )
     async def input_skin_type(message: Message, state: FSMContext):
         await state.update_data(chosen_skin_type=message.text.lower())
