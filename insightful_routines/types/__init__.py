@@ -1,0 +1,1 @@
+from .allergies import Allergies

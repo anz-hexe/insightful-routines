@@ -13,6 +13,8 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
+from insightful_routines.types import Allergies
+
 from . import Base
 
 
@@ -128,7 +130,7 @@ class UserAnswer(Base):
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
     date = Column(Date, default=datetime.now())
     question_old = Column(Enum("up to 25", "25 - 30", "30 - 45", "45+"))
-    question_allergen = Column(Enum("yes", "no"))
+    question_allergen = Column(Enum(Allergies.as_list()))
     question_medicines = Column(Enum("yes", "no"))
     question_skin_type = Column(
         Enum("normal", "dry", "oily", "combination", "sensitive")

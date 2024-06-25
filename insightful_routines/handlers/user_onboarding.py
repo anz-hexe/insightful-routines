@@ -11,9 +11,10 @@ from aiogram.types import (
 
 from insightful_routines.models import User, UserAnswer
 from insightful_routines.models.models import Session
+from insightful_routines.types import Allergies
 
 CHOICES_AGE_GROUP = ["up to 25", "25 - 30", "30 - 45", "45+"]
-CHOICES_ALLERGIES = ["yes", "no", "not that i'm aware of"]
+# CHOICES_ALLERGIES = ["yes", "no", "not that i'm aware of"]
 CHOICES_MEDICATIONS = ["yes", "no"]
 CHOICES_SKIN_TYPE = ["normal", "dry", "oily", "combination", "sensitive"]
 CHOICES_DATA_MANAGEMENT = ["yes", "change"]
@@ -51,12 +52,12 @@ def make_router(bot: Bot) -> Router:
         await state.update_data(chosen_age_group=message.text.lower())
         await message.answer(
             text="Do you have any allergies?",
-            reply_markup=create_reply_keyboard(CHOICES_ALLERGIES),
+            reply_markup=create_reply_keyboard(Allergies.as_list()),
         )
         await state.set_state(FirstMeetStateGroup.choosing_allergies)
 
     @router.message(
-        FirstMeetStateGroup.choosing_allergies, F.text.in_(CHOICES_ALLERGIES)
+        FirstMeetStateGroup.choosing_allergies, F.text.in_(Allergies.as_list())
     )
     async def input_allergies(message: Message, state: FSMContext):
         await state.update_data(chosen_allergies=message.text.lower())
