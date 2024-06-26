@@ -129,10 +129,10 @@ class UserAnswer(Base):
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
     date = Column(Date, default=datetime.now())
-    question_old = Column(Enum(*AgeGroup.as_list()))
-    question_allergen = Column(Enum(*Allergies.as_list()))
-    question_medicines = Column(Enum("yes", "no"))
-    question_skin_type = Column(Enum(*SkinType.as_list()))
+    question_old = Column(Enum(*AgeGroup.as_list(), name=AgeGroup.name()))
+    question_allergen = Column(Enum(*Allergies.as_list(), name=Allergies.name()))
+    question_medicines = Column(Enum("yes", "no", name="medication_enum"))
+    question_skin_type = Column(Enum(*SkinType.as_list(), name=SkinType.name()))
     user = relationship(
         "User",
         back_populates="answers",

@@ -1,9 +1,12 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from insightful_routines.config import Config
 from insightful_routines.models import Base
 
-engine = create_engine("sqlite:///data/person.db", echo=True)
+config = Config()
+
+engine = create_engine(url=config.postgres_uri, echo=True)
 Session = sessionmaker(bind=engine)
 
 

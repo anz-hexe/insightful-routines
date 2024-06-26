@@ -15,10 +15,11 @@ aiogram = "^3.4.1"
 pydantic = "^2.5.3"
 pydantic-settings = "^2.2.1"
 rich = "^13.7.1"
-SQLAlchemy = "^2.0.29"
+SQLAlchemy = { version = "^2.0.29", extras = ["postgresql"] }
 facenet-pytorch = "^2.5.3"
 pandas = "^2.2.2"
 importlib_resources = "^6.4.0"
+
 
 [tool.poetry.scripts]
 insightful-routines-bot = 'insightful_routines.main:main'
