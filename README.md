@@ -80,5 +80,3 @@ Acne Tracking: Allows the user to track acne.
 Processing facial photos: The bot can save photos of the user's face for further analysis based on the received data.
 
 Reports: The bot can generate a report based on the tracked data for further data analysis.
-
-
