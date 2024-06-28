@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## v0.3.1 (2024-06-28)
+
+### Fix
+
+* fix: release package v3 ([`aa219fe`](https://github.com/anz-hexe/insightful-routines/commit/aa219feed9173a56a83ff2ea4073d151a2ba1c02))
+
+* fix: release package v2 ([`1ad7279`](https://github.com/anz-hexe/insightful-routines/commit/1ad72795d7ea7ecd4fe4ae320b7a5ce238a0a1cf))
+
+* fix: release package ([`8263ec0`](https://github.com/anz-hexe/insightful-routines/commit/8263ec0b99a318efb10182665553ae8ec027716d))
+
 ## v0.3.0 (2024-06-28)
 
 ### Feature
