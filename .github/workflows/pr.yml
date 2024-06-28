@@ -15,6 +15,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+          cache: 'poetry'
 
       - name: Install Poetry
         uses: abatilo/actions-poetry@v2
@@ -23,8 +24,6 @@ jobs:
           poetry config virtualenvs.create false
 
       - name: Install dependencies
-        with:
-          cache: 'poetry'
         run: |
           poetry install --no-root --all-extras
 
@@ -39,6 +38,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+          cache: 'poetry'
 
       - name: Install Poetry
         uses: abatilo/actions-poetry@v2
@@ -47,8 +47,6 @@ jobs:
           poetry config virtualenvs.create false
 
       - name: Install dependencies
-        with:
-          cache: 'poetry'
         run: |
           poetry install --no-root --all-extras
 
@@ -67,6 +65,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+          cache: 'poetry'
 
       - name: Install Poetry
         uses: abatilo/actions-poetry@v2
@@ -75,8 +74,6 @@ jobs:
           poetry config virtualenvs.create false
 
       - name: Install dependencies
-        with:
-          cache: 'poetry'
         run: |
           poetry install --no-root --all-extras
 
