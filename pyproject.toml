@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "insightful-routines"
-version = "0.0.0"
+version = "0.2.0"
 description = "This is a package for 'insightful-routines' Telegram bot"
 authors = ["Anzhelina Shevchuk"]
 readme = "README.md"
@@ -38,37 +38,7 @@ branch = "main"
 upload_to_pypi = false
 upload_to_release = true
 build_command = "poetry build"
-major_on_zero = true
-version_variables = ["semantic_release/__init__.py:__version__"]
-version_toml = ["pyproject.toml:project.version"]
-
-[tool.semantic_release.changelog]
-exclude_commit_patterns = [
-  '''chore(?:\([^)]*?\))?: .+''',
-  '''ci(?:\([^)]*?\))?: .+''',
-  '''refactor(?:\([^)]*?\))?: .+''',
-  '''style(?:\([^)]*?\))?: .+''',
-  '''test(?:\([^)]*?\))?: .+''',
-  '''build\((?!deps\): .+)''',
-  '''Merged? .*''',
-  '''Initial Commit.*''',
-  # Old semantic-release version commits
-  '''^\d+\.\d+\.\d+''',
-]
-
-[tool.semantic_release.branches.main]
-match = "(main|master)"
-prerelease = false
-prerelease_token = "rc"
-
-[tool.semantic_release.branches.alpha]
-match = "^(feat|fix|perf)/.+"
-prerelease = true
-prerelease_token = "alpha"
-
-[tool.semantic_release.remote]
-type = "github"
-token = { env = "GH_TOKEN" }
-
-[tool.semantic_release.publish]
-upload_to_vcs_release = true
+version_source = "commit"
+version_pattern = "^v?\\d+\\.\\d+\\.\\d+$"
+changelog_file = "CHANGELOG.md"
+commit_message_analyzer = "semantic_release.history.logs.gitmoji"
