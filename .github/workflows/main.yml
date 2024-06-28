@@ -117,6 +117,26 @@ jobs:
         with:
           fetch-depth: 0
 
+      - uses: actions/cache@v3
+        name: Define a cache for the virtual environment based on the dependencies lock file
+        with:
+          path: ./.venv
+          key: venv-${{ hashFiles('poetry.lock') }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "poetry"
+
+      - name: Install dependencies
+        run: |
+          poetry install --no-root --all-extras
+
+      - name: Build project
+        run: |
+          poetry build
+
       - name: Python Semantic Release
         uses: python-semantic-release/python-semantic-release@master
         env:
