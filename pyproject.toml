@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "insightful-routines"
-version = "0.3.1"
+version = "0.3.2"
 description = "This is a package for 'insightful-routines' Telegram bot"
 authors = ["Anzhelina Shevchuk"]
 readme = "README.md"

@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.3.2 (2024-06-28)
+
+### Fix
+
+* fix: updated semantic release config ([`5357017`](https://github.com/anz-hexe/insightful-routines/commit/5357017a88475f449ebc5974f9970a54204bb504))
+
 ## v0.3.1 (2024-06-28)
 
 ### Fix
