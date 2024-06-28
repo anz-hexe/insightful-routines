@@ -146,7 +146,7 @@ jobs:
       - name: Python Semantic Release
         uses: python-semantic-release/python-semantic-release@master
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag: ${{ steps.semantic-release.outputs.version }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
