@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.3.3 (2024-06-28)
+
+### Fix
+
+* fix: id release ([`8a7bd52`](https://github.com/anz-hexe/insightful-routines/commit/8a7bd5206727e3ca86e040e2b21d37978e3dffe1))
+
 ## v0.3.2 (2024-06-28)
 
 ### Fix
