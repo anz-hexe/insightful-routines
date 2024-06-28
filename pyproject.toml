@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "insightful-routines"
-version = "0.1.0"
+version = "0.0.0"
 description = "This is a package for 'insightful-routines' Telegram bot"
 authors = ["Anzhelina Shevchuk"]
 readme = "README.md"
@@ -29,3 +29,12 @@ insightful-routines-bot = 'insightful_routines.main:main'
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.semantic_release]
+version_variable = [
+    "pyproject.toml:version"
+]
+branch = "main"
+upload_to_pypi = false
+upload_to_release = true
+build_command = "poetry build"
